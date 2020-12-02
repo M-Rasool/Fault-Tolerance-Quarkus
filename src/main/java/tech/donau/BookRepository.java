@@ -1,5 +1,6 @@
 package tech.donau;
 
+import org.eclipse.microprofile.faulttolerance.CircuitBreaker;
 import org.eclipse.microprofile.faulttolerance.Fallback;
 import org.eclipse.microprofile.faulttolerance.Retry;
 import org.eclipse.microprofile.faulttolerance.Timeout;
@@ -12,7 +13,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 
 @Path("/book")
 public class BookRepository {
@@ -21,25 +21,16 @@ public class BookRepository {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Fallback(fallbackMethod = "getFallBackBooks")
+    @CircuitBreaker(failOn = RuntimeException.class, requestVolumeThreshold = 10, delay = 20000L)
     public List<Book> getBooks() {
 
-        final boolean fail = new Random().nextBoolean();
-
-        if (fail) {
+        if (true) {
             LOGGER.info("This exception is for test");
             throw new RuntimeException("Call fallback method");
         }
         return Arrays.asList(new Book("1", "Book 1", "Author 1"),
                             new Book("2", "Book 2", "Author 2"),
                             new Book("3", "Book 3", "Author 3")
-        );
-    }
-
-    public List<Book> getFallBackBooks() {
-        return Arrays.asList(new Book("1", "Fallback Book 1", "Author 1"),
-                new Book("2", "Fallback Book 2", "Author 2"),
-                new Book("3", "Fallback Book 3", "Author 3")
         );
     }
 }
