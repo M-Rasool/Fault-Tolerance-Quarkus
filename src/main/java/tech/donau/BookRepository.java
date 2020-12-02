@@ -1,6 +1,7 @@
 package tech.donau;
 
 import org.eclipse.microprofile.faulttolerance.Retry;
+import org.eclipse.microprofile.faulttolerance.Timeout;
 import org.jboss.logging.Logger;
 import tech.donau.data.data.Book;
 
@@ -19,20 +20,18 @@ public class BookRepository {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Book> getBooks() {
-        return getFailBooks();
-    }
+    @Timeout
+    public List<Book> getBooks() throws InterruptedException {
 
-    @Retry(maxRetries = 4, delay = 1000L)
-    public List<Book> getFailBooks() {
         final boolean fail = new Random().nextBoolean();
+
         if (fail) {
             LOGGER.info("This exception is for test");
-            throw new RuntimeException("Test");
+            Thread.sleep(2000);
         }
         return Arrays.asList(new Book("1", "Book 1", "Author 1"),
-                new Book("2", "Book 2", "Author 2"),
-                new Book("3", "Book 3", "Author 3")
+                            new Book("2", "Book 2", "Author 2"),
+                            new Book("3", "Book 3", "Author 3")
         );
     }
 }
